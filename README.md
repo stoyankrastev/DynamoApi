@@ -45,21 +45,9 @@ Download
 Returns item(s) that match specific template. The item is identified by one or more property/value pairs. 
 
    * Method: GET
-   * URL: /v1/document/download?dynamoId=<code>document id<code>
-   * Response: application/gzip [todo]
+   * URL: /v1/document/download?dynamoId=<code>document id</code>
+   * Response: application/gzip //TODO
    
-
-GetById
------
-Returns an existing item. The item is identified by <code>entityName</code> and <code>dynamoId</code> query arguments. The properties to be returned are defined via 'x-columns' header in the request. 
-
-   * Method: GET
-   * URL: /v1/getbyid
-   * Query arguments: <code>?entityName='Entity name'&dynamoId='the id of the item to be returned'</code>
-   * Header: <code>x-columns</code> a semicolon separated list of properties. 
-   * Response: application/json
-   
-   <code>{ es: 'The type of the item', id: 'the id of the item' }</code> and the test of the property/value pairs requested. 
 
 # License
 

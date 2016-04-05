@@ -30,12 +30,12 @@ Creates or updates an item. The item is identified by <code>es</code> and <code>
 
 GetById
 -----
-Returns an existing item. The item is identified by <code>entityName</code> and <code>dynamoId</code> query arguments. The properties to be returned are defined via 'x-columns' cookie in the request. 
+Returns an existing item. The item is identified by <code>entityName</code> and <code>dynamoId</code> query arguments. The properties to be returned are defined via 'x-columns' header in the request. 
 
    * Method: GET
    * URL: /v1/getbyid
    * Query arguments: <code>?entityName='Entity name'&dynamoId='the id of the item to be returned'</code>
-   * Cookie: <code>x-columns</code> a semicolon separated list of properties. 
+   * Header: <code>x-columns</code> a semicolon separated list of properties. 
    * Response: application/json
    
    <code>{ es: 'The type of the item', id: 'the id of the item' }</code> and the test of the property/value pairs requested. 

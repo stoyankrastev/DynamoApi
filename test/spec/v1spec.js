@@ -104,7 +104,7 @@ var apiLogin = function (args, cb) {
  
 describe("login", function () {
     
-    xit('with invalid credentials', function (done) {
+    it('with invalid credentials', function (done) {
         
         var args = {
             username: 'these is no such user there',
@@ -122,7 +122,7 @@ describe("login", function () {
             
     });
     
-    xit('with valid credentials', function (done) {
+    it('with valid credentials', function (done) {
         
         var args = {
             username: tenant.username,
@@ -147,7 +147,7 @@ describe("login", function () {
 
 describe("read/write", function () {
     
-    xit("save should create items", function (done) {
+    it("save should create items", function (done) {
         
         var args = {
             username: tenant.username,

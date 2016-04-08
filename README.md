@@ -1,6 +1,6 @@
 # Dynamo Api v1
 
-This is a pubic API to Dynamo Software' Dynamo (http://www.dynamosoftware.com/).
+This is a pubic API to Dynamo Software's Dynamo (http://www.dynamosoftware.com/).
 
 In order to use the API, you need a Dynamo account which has granted API access. Please, your administrator or Dynamo Software support for instructions how to acquire one.
 

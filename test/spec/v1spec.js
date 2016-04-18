@@ -264,6 +264,13 @@ describe("read/write", function () {
         });
     });
 
+    xit("GetByTemplate should return related items", function (done) {
+    
+        done.fail('Implement me');        
+
+    });
+
+
     it("getbyid should return existing items", function (done) {
 
         var args = {

@@ -26,7 +26,7 @@ Creates or updates an item. The item is identified by <code>es</code> and <code>
    * Body: Stringified JSON object that must contain <code>es</code> and <code>id</code> as a minimum.
    * Response: application/json
    
-   <code>{ dynamoId: 'the id of the created/updated item' }</code>
+   <code>{ dynamoId: 'the id of the created/updated item', es: 'The type of the item' }</code>
 
 GetById
 -----

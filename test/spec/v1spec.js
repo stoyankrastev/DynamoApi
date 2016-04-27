@@ -5,6 +5,7 @@ var querystring = require('querystring');
 var sessionCookies = null;
 
 var apiGet = function (name, args, headers, cb) {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 
     if (!cb) {
         cb = headers;
@@ -102,7 +103,7 @@ var apiLogin = function (args, cb) {
 
 };
 
-describe("login", function () {
+describe("login - ", function () {
 
     it('with invalid credentials', function (done) {
 
@@ -145,7 +146,108 @@ describe("login", function () {
 
 });
 
-describe("read/write", function () {
+describe("read - ", function () {
+
+    it("getbyid should return existing item", function (done) {
+
+        var args = {
+            username: tenant.username,
+            password: tenant.password,
+            tenant: tenant.name
+        };
+
+        var item = {
+            es: 'Contact',
+            id: 'D7B0576D-1910-436A-8E64-A90619960F05',
+            fullname: 'Indiana Jones'
+        };
+
+        apiPost('login', args, function (err) {
+
+            apiPost('save', JSON.stringify(item), function (err) {
+
+                apiGet('getbyid', { entityName: item.es, dynamoId: item.id }, { 'x-columns': 'fullname' }, function (err, data) {
+
+                    expect(err).toBeFalsy();
+
+                    expect(data.fullname).toBe(item.fullname);
+
+                    done();
+                });
+
+            });
+
+        });
+
+    });
+
+    it("GetByTemplate should return all items of type Contact", function (done) {
+
+        var args = {
+            username: tenant.username,
+            password: tenant.password,
+            tenant: tenant.name
+        };
+
+        var item = {
+            es: 'Contact',
+            id: 'D7B0576D-1910-436A-8E64-A90619960F05',
+            fullname: 'Indiana Jones'
+        };
+
+        apiPost('login', args, function (err) {
+
+            apiPost('save', JSON.stringify(item), function (err) {
+
+                apiGet('getByTemplate', { es: 'Contact' },
+                 { 'x-columns': 'ID,First Name,Last Name' }, function (err, getData) {
+
+                    expect(err).toBeFalsy();
+                    expect(getData.totalCount).toBe(2);
+
+                    expect(getData.items[0].ID.toLowerCase()).toBe(item.id.toLowerCase());
+                    expect(getData.items[0]['First Name']).toBe('Indiana');
+                    expect(getData.items[0]['Last Name']).toBe('Jones');
+                    done();
+                });
+
+            });
+
+        });
+
+    });
+
+    it("GetByTemplate should return all items of type Contact with firstname", function (done) {
+
+        var args = {
+            username: tenant.username,
+            password: tenant.password,
+            tenant: tenant.name
+        }; 
+
+        apiPost('login', args, function (err) {
+
+            apiGet('getByTemplate', {
+                es: 'contact',
+                firstname: 'Indiana'
+               // id: ['D7B0576D-1910-436A-8E64-A90619960F05']
+            }, {'x-columns': 'ID,First Name,Last Name'}, function (err, getData) {
+
+                expect(err).toBeFalsy();
+                expect(getData.totalCount).toBe(1);
+
+                expect(getData.items[0].ID.toLowerCase()).toBe('D7B0576D-1910-436A-8E64-A90619960F05'.toLowerCase());
+                expect(getData.items[0]['First Name']).toBe('Indiana');
+                expect(getData.items[0]['Last Name']).toBe('Jones');
+                done();
+            });
+        });
+
+    });
+
+});
+
+describe("write - ", function () {
 
     it("save should create items", function (done) {
 
@@ -163,10 +265,10 @@ describe("read/write", function () {
 
         apiPost('login', args, function (err, data) {
 
-            apiPost('save', JSON.stringify(item), function (err, data) {
+            apiPost('save', JSON.stringify(item), function (err, savedData) {
 
                 expect(err).toBeFalsy();
-                expect(data.dynamoId).toBe('48a052cb-b3c2-47de-9e05-bb518fe11160');
+                expect(savedData[0].dynamoId).toBe(item.id);
 
                 done();
 
@@ -192,16 +294,16 @@ describe("read/write", function () {
 
         apiPost('login', args, function (err, data) {
 
-            apiPost('save', JSON.stringify(item), function (err, data) {
+            apiPost('save', JSON.stringify(item), function (err, savedData) {
 
                 expect(err).toBeFalsy();
-                expect(data.dynamoId).toBe('48a052cb-b3c2-47de-9e05-bb518fe11160');
+                expect(savedData[0].dynamoId).toBe(item.id);
 
-                apiGet('getbyid', { entityName: 'Contact', dynamoId: data.dynamoId }, { 'x-columns': 'fullname' }, function (err, data) {
+                apiGet('getbyid', { entityName: item.es, dynamoId: item.id }, { 'x-columns': 'fullname' }, function (err, getData) {
 
                     expect(err).toBeFalsy();
 
-                    expect(data.fullname).toBe('john smith1');
+                    expect(getData.fullname).toBe(item.fullname);
 
                     done();
                 });
@@ -235,74 +337,31 @@ describe("read/write", function () {
 
         apiPost('login', args, function (err, data) {
 
-            apiPost('save', JSON.stringify(items), function (err, saveData) {
+            apiPost('save', JSON.stringify(items), function (err, savedData) {
 
                 expect(err).toBeFalsy();
 
                 var testItem = items[0];
-                apiGet('getbyid', { entityName: saveData[0].es, dynamoId: saveData[0].dynamoId }, { 'x-columns': 'fullname' }, function (err, getData) {
+                apiGet('getbyid', { entityName: savedData[0].es, dynamoId: savedData[0].dynamoId }, { 'x-columns': 'fullname' }, function (err, getData) {
 
                     expect(err).toBeFalsy();
-
                     expect(getData.fullname).toBe(testItem.fullname);
+                    testItem = items[1];
+                    apiGet('getbyid', { entityName: savedData[1].es, dynamoId: savedData[1].dynamoId }, { 'x-columns': 'to,body,subject' }, function (err, getData1) {
 
-                });
+                        expect(err).toBeFalsy();
 
-                testItem = items[1];
-                apiGet('getbyid', { entityName: saveData[1].es, dynamoId: saveData[1].dynamoId }, { 'x-columns': 'to,body,subject' }, function (err, getData) {
+                        expect(getData1.to).toBe(testItem.to);
+                        expect(getData1.subject).toBe(testItem.subject);
+                        expect(getData1.body).toBe(testItem.body);
 
-                    expect(err).toBeFalsy();
+                        done();
+                    });
 
-                    expect(getData.to).toBe(testItem.to);
-                    expect(getData.subject).toBe(testItem.subject);
-                    expect(getData.body).toBe(testItem.body);
-
-                    done();
                 });
 
             });
         });
     });
-
-    xit("GetByTemplate should return related items", function (done) {
-    
-        done.fail('Implement me');        
-
-    });
-
-
-    it("getbyid should return existing items", function (done) {
-
-        var args = {
-            username: tenant.username,
-            password: tenant.password,
-            tenant: tenant.name
-        };
-
-        var item = {
-            es: 'Contact',
-            id: 'D7B0576D-1910-436A-8E64-A90619960F05',
-            fullname: 'Indiana Jones'
-        };
-
-        apiPost('login', args, function (err) {
-
-            apiPost('save', JSON.stringify(item), function (err) {
-
-                apiGet('getbyid', { entityName: 'Contact', dynamoId: 'D7B0576D-1910-436A-8E64-A90619960F05' }, { 'x-columns': 'fullname' }, function (err, data) {
-
-                    expect(err).toBeFalsy();
-
-                    expect(data.fullname).toBe('Indiana Jones');
-
-                    done();
-                });
-
-            });
-
-        });
-
-    });
-
-
 });
+

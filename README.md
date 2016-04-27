@@ -39,17 +39,29 @@ Creates or updates an item. The item is identified by <code>es</code> and <code>
    
    <code>{ dynamoId: 'the id of the created/updated item', es: 'The type of the item' }</code>
 
+GetById
+----------------
+Returns an item with the specified entityName and dynamoId.
+
+   * Method: GET
+   * URL: /v1/getbyid
+   * Query string: entityName=<code>entityName</code>&dynamoId=<code>dynamoId</code>
+   * Header: <code>x-columns</code> a comma-separated list of properties to return.
+   * Response: application/json                      
+
+   <code>{ id: 'the id of the requesed item', es: 'The type of the requesed item' }</code> and the rest of the requested property/value pairs. 
+   
 GetByTemplate
 ----------------
-Returns item(s) that match specific template. The item is identified by one or more property/value pairs. 
+Returns item(s) that match specific template. The items are identified by one or more property/value pairs. 
 
-   * Method: POST
+   * Method: GET
    * URL: /v1/getbytemplate
-   * Body: Stringified JSON object that must contain one or more pair of property/value.
-   * Header: <code>x-columns</code> a semicolon separated list of properties. 
+   * Query string: Stringified JSON object that must contain one or more pair of property/value.
+   * Header: <code>x-columns</code> a comma-separated list of properties to return. 
    * Response: application/json
    
-   <code>{ es: 'The type of the item', id: 'the id of the item' }</code> and the test of the property/value pairs requested. 
+   <code>{ totalCount: 'number of items', items: 'an array of items' }</code> 
 
 Download
 --------

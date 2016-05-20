@@ -1,6 +1,9 @@
-var tenant = require("./helpers/testsubject.js");
-var request = require('request');
-var querystring = require('querystring');
+const tenant = require("./helpers/testsubject.js");
+const request = require('request');
+const querystring = require('querystring');
+const https = require('https');
+const fs = require('fs');
+const contentDisposition = require('content-disposition');
 
 var sessionCookies = null;
 
@@ -55,11 +58,11 @@ var apiGet = function (name, args, headers, cb) {
     });
 };
 
-var apiPost = function (name, args, cb) {
+var apiPostJson = function (name, args, cb) {
 
     if (name[0] != '/') name = '/' + name;
 
-    var options = { url: tenant.apiurl + name, form: args };
+    var options = { url: tenant.apiurl + name, json : args };
     if (sessionCookies) {
         options.headers = { 'Cookie': sessionCookies };
     }
@@ -79,25 +82,9 @@ var apiPost = function (name, args, cb) {
 
             sessionCookies = res.headers['set-cookie'] || sessionCookies;
 
-            if (body) body = JSON.parse(body);
+          //  if (body) body = JSON.parse(body);
             cb(null, body);
         }
-
-    });
-
-};
-
-var apiLogin = function (args, cb) {
-
-    sidt = null;
-
-    apiPost('login', args, function (err, data) {
-
-        if (err) return cb(err);
-
-        sidt = data.sidt;
-
-        cb(null, data);
 
     });
 
@@ -116,7 +103,7 @@ describe("login - ", function () {
         //POST login
         //  In case of an error, the statusCode will be 500 and the body could contain a human readable description
 
-        apiPost('login', args, function (err, data) {
+        apiPostJson('login', args, function (err, data) {
             expect(err).toBeTruthy();
             done();
         });
@@ -134,7 +121,7 @@ describe("login - ", function () {
         //POST login
         //  upon success returns an object with a session token
 
-        apiPost('login', args, function (err, data) {
+        apiPostJson('login', args, function (err, data) {
             expect(err).toBeFalsy();
             expect(data.sidt).toBeTruthy();
             done();
@@ -162,9 +149,9 @@ describe("read - ", function () {
             fullname: 'Indiana Jones'
         };
 
-        apiPost('login', args, function (err) {
+        apiPostJson('login', args, function (err) {
 
-            apiPost('save', JSON.stringify(item), function (err) {
+            apiPostJson('save', item, function (err) {
 
                 apiGet('getbyid', { entityName: item.es, dynamoId: item.id }, { 'x-columns': 'fullname' }, function (err, data) {
 
@@ -195,21 +182,21 @@ describe("read - ", function () {
             fullname: 'Indiana Jones'
         };
 
-        apiPost('login', args, function (err) {
+        apiPostJson('login', args, function (err) {
 
-            apiPost('save', JSON.stringify(item), function (err) {
+            apiPostJson('save', item, function (err) {
 
                 apiGet('getByTemplate', { es: 'Contact' },
-                 { 'x-columns': 'ID,First Name,Last Name' }, function (err, getData) {
+                    { 'x-columns': 'ID,First Name,Last Name' }, function (err, getData) {
 
-                    expect(err).toBeFalsy();
-                    expect(getData.totalCount).toBe(2);
+                        expect(err).toBeFalsy();
+                        expect(getData.totalCount).toBe(2);
 
-                    expect(getData.items[0].ID.toLowerCase()).toBe(item.id.toLowerCase());
-                    expect(getData.items[0]['First Name']).toBe('Indiana');
-                    expect(getData.items[0]['Last Name']).toBe('Jones');
-                    done();
-                });
+                        expect(getData.items[0].ID.toLowerCase()).toBe(item.id.toLowerCase());
+                        expect(getData.items[0]['First Name']).toBe('Indiana');
+                        expect(getData.items[0]['Last Name']).toBe('Jones');
+                        done();
+                    });
 
             });
 
@@ -217,21 +204,21 @@ describe("read - ", function () {
 
     });
 
-    it("GetByTemplate should return all items of type Contact with firstname", function (done) {
+    it("GetByTemplate should return all items of type Contact with firstname 'Indiana'", function (done) {
 
         var args = {
             username: tenant.username,
             password: tenant.password,
             tenant: tenant.name
-        }; 
+        };
 
-        apiPost('login', args, function (err) {
+        apiPostJson('login', args, function (err) {
 
             apiGet('getByTemplate', {
                 es: 'contact',
                 firstname: 'Indiana'
-               // id: ['D7B0576D-1910-436A-8E64-A90619960F05']
-            }, {'x-columns': 'ID,First Name,Last Name'}, function (err, getData) {
+                // id: ['D7B0576D-1910-436A-8E64-A90619960F05']
+            }, { 'x-columns': 'ID,First Name,Last Name' }, function (err, getData) {
 
                 expect(err).toBeFalsy();
                 expect(getData.totalCount).toBe(1);
@@ -263,9 +250,9 @@ describe("write - ", function () {
             fullname: 'john smith'
         };
 
-        apiPost('login', args, function (err, data) {
+        apiPostJson('login', args, function (err, data) {
 
-            apiPost('save', JSON.stringify(item), function (err, savedData) {
+            apiPostJson('save', item, function (err, savedData) {
 
                 expect(err).toBeFalsy();
                 expect(savedData[0].dynamoId).toBe(item.id);
@@ -292,9 +279,9 @@ describe("write - ", function () {
             fullname: 'john smith1'
         };
 
-        apiPost('login', args, function (err, data) {
+        apiPostJson('login', args, function (err, data) {
 
-            apiPost('save', JSON.stringify(item), function (err, savedData) {
+            apiPostJson('save', item, function (err, savedData) {
 
                 expect(err).toBeFalsy();
                 expect(savedData[0].dynamoId).toBe(item.id);
@@ -335,9 +322,9 @@ describe("write - ", function () {
             }
         ];
 
-        apiPost('login', args, function (err, data) {
+        apiPostJson('login', args, function (err, data) {
 
-            apiPost('save', JSON.stringify(items), function (err, savedData) {
+            apiPostJson('save', items, function (err, savedData) {
 
                 expect(err).toBeFalsy();
 
@@ -360,6 +347,137 @@ describe("write - ", function () {
 
                 });
 
+            });
+        });
+    });
+});
+
+describe("download - ", function () {
+
+    it("should get existing file by id", function (done) {
+
+        var args = {
+            username: tenant.username,
+            password: tenant.password,
+            tenant: tenant.name
+        };
+
+        var item = {
+            es: 'Document',
+            id: '6f7cff0e-fd17-4251-9a1a-0e37e5ef604b'
+        };
+        var dest_dir = './downloads/';
+
+        apiPostJson('login', args, function (err) {
+
+            if (!fs.existsSync(dest_dir)) {
+                fs.mkdirSync(dest_dir);
+            }
+            var options = { url: tenant.apiurl + '/GetDocument?id=' + item.id };
+            if (sessionCookies) {
+                options.headers = { 'Cookie': sessionCookies };
+            }
+
+            request.get(options).on('response', function (response) {
+
+                var contentDispositionHeader = contentDisposition.parse(response.headers['content-disposition'].toString());
+                var file_name = contentDispositionHeader.parameters['filename'];
+
+                var dest = dest_dir + file_name;
+
+                var writeStream = fs.createWriteStream(dest);
+
+                writeStream.on('finish', function () {
+                    fs.stat(dest, function (fserr, stats) {
+                        expect(fserr).toBeFalsy();
+                        expect(stats.isFile()).toBeTruthy();
+
+                        expect(stats.size > 0).toBeTruthy();
+                        done();
+                    });                    
+                });
+
+
+                writeStream.on('error', function (err) {
+                    fs.unlink(dest);
+                });
+
+                response.pipe(writeStream);
+            });
+
+        });
+
+    });
+
+});
+
+describe("Execute - ", function () {
+    it("should execute workflow", function (done) {
+
+        var args = {
+            username: tenant.username,
+            password: tenant.password,
+            tenant: tenant.name
+        };
+
+
+        var workflow = {
+            es: 'Workflow Logic',
+            id: 'dd115c36-4cbd-4623-b028-936c16455b06',
+            Name: 'ExistingWorkflow',
+            Enabled: true,
+            WorkflowDefinition: "\
+trigger \n\
+   operation <- 'APIOperation'"
+        };
+
+        apiPostJson('login', args, function (err, data) {
+            //Create workflow to call later with ExecuteCommand
+            apiPostJson('save', workflow, function (saveErr, savedData) {
+                expect(saveErr).toBeFalsy();
+                expect(savedData[0].dynamoId).toBe(workflow.id);
+                
+                //Define the command with parameters
+                var command = {
+                    commandName: workflow.Name,
+                    id: '48a052cb-b3c2-47de-9e05-bb518fe11160',
+                    fullname: 'john smith',
+                    param1: 'par_1',
+                };
+                apiPostJson('ExecuteCommand', command, function (execErr, respData) {
+
+                    expect(execErr).toBeFalsy();
+                    expect(respData.err).toBeFalsy();
+                  
+                    done();
+                });
+            });
+        });
+    });
+
+    it("should return an error for nonexisting workflow", function (done) {
+
+        var args = {
+            username: tenant.username,
+            password: tenant.password,
+            tenant: tenant.name
+        };
+
+        var command = {
+            commandName: 'NonExisingWorkflow',
+            id: '48a052cb-b3c2-47de-9e05-bb518fe11160',
+            fullname: 'john smith',
+            param1: 'par_1',
+        };
+
+        apiPostJson('login', args, function (err, data) {
+            apiPostJson('ExecuteCommand', command, function (execError, respData) {
+
+                expect(execError).toBeFalsy();
+                expect(respData.err).toBeTruthy();
+                expect(respData.errMessage).toMatch('NonExisingWorkflow');
+               
+                done();
             });
         });
     });

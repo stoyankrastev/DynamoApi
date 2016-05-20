@@ -57,7 +57,7 @@ Returns item(s) that match specific template. The items are identified by one or
 
    * Method: GET
    * URL: /v1/getbytemplate
-   * Query string: Stringified JSON object that must contain one or more pair of property/value.
+   * Query string: Stringified JSON object that must contain one or more pairs of property/value.
    * Header: <code>x-columns</code> a comma-separated list of properties to return. 
    * Response: application/json
    
@@ -65,11 +65,22 @@ Returns item(s) that match specific template. The items are identified by one or
 
 Download
 --------
-Returns item(s) that match specific template. The item is identified by one or more property/value pairs. 
+Returns a file for the specified document id. 
 
    * Method: GET
    * URL: /v1/document/download?dynamoId=<code>document id</code>
-   * Response: application/gzip //TODO
+   * Response: the file
+   
+Execute Command
+--------
+Executes a command/workflow logic defined in Dynamo. 
+
+   * Method: POST
+   * URL: /v1/executecommand
+   * Body: Stringified JSON object that must contain <code>commandName</code> and one or more pairs of property/value.
+   * Response: application/json
+   
+   <code>{ err: 'true/false', errMessage: 'Exception message if any' }</code>
    
 
 # MIT License
